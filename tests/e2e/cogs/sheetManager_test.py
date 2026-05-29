@@ -2,6 +2,7 @@
 import disnake
 import pytest
 
+from cogs5e.models import automation
 from tests.utils import active_character
 
 pytestmark = pytest.mark.asyncio
@@ -20,6 +21,21 @@ class TestBasicSheetCommands:
 
     async def test_attack_add(self, avrae, dhttp):
         avrae.message("!a add TESTATTACKFOOBAR -b 5 -d 1d6")
+
+    async def test_attack_add_save(self, avrae, dhttp):
+        avrae.message('!a add TESTSAVEFOOBAR -save con -dc 13 -d "2d6[poison]" half')
+        await dhttp.receive_message("Created attack TESTSAVEFOOBAR!")
+
+        character = await active_character(avrae)
+        attack = next(a for a in character.overrides.attacks if a.name == "TESTSAVEFOOBAR")
+        save = attack.automation.effects[0].effects[0]
+
+        assert isinstance(attack.automation.effects[0], automation.Target)
+        assert isinstance(save, automation.Save)
+        assert save.stat == "con"
+        assert save.dc == "13"
+        assert save.fail[0].damage == "2d6[poison]"
+        assert save.success[0].damage == "(2d6[poison])/2"
 
     async def test_attack_delete(self, avrae, dhttp):
         avrae.message("!a delete TESTATTACKFOOBAR")

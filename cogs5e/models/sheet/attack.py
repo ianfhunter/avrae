@@ -1,6 +1,7 @@
 from typing import Optional, TYPE_CHECKING
 
 from utils import enums
+from utils.constants import STAT_ABBREVIATIONS
 
 if TYPE_CHECKING:
     from cogs5e.models.automation import Automation
@@ -107,6 +108,9 @@ class Attack:
         extra_crit_damage: Optional[str] = None,
         activation_type: Optional[enums.ActivationType] = None,
         list_display_override: Optional[str] = None,
+        save: Optional[str] = None,
+        dc: Optional[str] = None,
+        success_damage: Optional[str] = None,
     ):
         """Creates a new attack for a character."""
         if bonus_calc is not None:
@@ -114,7 +118,9 @@ class Attack:
 
         return cls(
             name,
-            old_to_automation(bonus_calc, damage_calc, details),
+            old_to_automation(
+                bonus_calc, damage_calc, details, save=save, dc=dc, success_damage=success_damage
+            ),
             verb=verb,
             proper=proper,
             criton=criton,
@@ -256,18 +262,29 @@ class AttackList:
         return bool(self.attacks)
 
 
-def old_to_automation(bonus: str | None = None, damage: str | None = None, details: str | None = None):
+def old_to_automation(
+    bonus: str | None = None,
+    damage: str | None = None,
+    details: str | None = None,
+    save: str | None = None,
+    dc: str | None = None,
+    success_damage: str | None = None,
+):
     """Returns an Automation instance representing an old attack."""
     from cogs5e.models import automation
 
-    if damage:
-        damage = automation.Damage(damage)
+    damage_effect = automation.Damage(damage) if damage else None
 
-    if bonus:
-        hit = [damage] if damage else []
+    if save:
+        save = normalize_save_stat(save)
+        fail = [damage_effect] if damage_effect else []
+        success = [automation.Damage(success_damage)] if success_damage else []
+        attack_eff = [automation.Save(save, fail=fail, success=success, dc=dc)]
+    elif bonus:
+        hit = [damage_effect] if damage_effect else []
         attack_eff = [automation.Attack(hit=hit, miss=[], attackBonus=str(bonus).strip("{}<>"))]
     else:
-        attack_eff = [damage] if damage else []
+        attack_eff = [damage_effect] if damage_effect else []
 
     effects = [automation.Target("each", attack_eff)] if attack_eff else []
     if details:
@@ -276,3 +293,11 @@ def old_to_automation(bonus: str | None = None, damage: str | None = None, detai
         effects.append(automation.Text(details))
 
     return automation.Automation(effects)
+
+
+def normalize_save_stat(save: str) -> str:
+    """Normalizes a save stat to its three-letter abbreviation."""
+    save = save.lower()[:3]
+    if save not in STAT_ABBREVIATIONS:
+        raise ValueError(f"{save!r} is not a valid save stat")
+    return save

@@ -24,8 +24,8 @@ from aliasing import helpers
 from cogs5e.models import embeds
 from cogs5e.models.character import Character
 from cogs5e.models.embeds import EmbedWithAuthor
-from cogs5e.models.errors import ExternalImportError, NoCharacter
-from cogs5e.models.sheet.attack import Attack, AttackList
+from cogs5e.models.errors import ExternalImportError, InvalidArgument, NoCharacter
+from cogs5e.models.sheet.attack import Attack, AttackList, normalize_save_stat
 from cogs5e.sheets.beyond import BeyondSheetParser, DDB_URL_RE, DDB_PDF_URL_RE
 from cogs5e.sheets.dicecloud import DICECLOUD_URL_RE, DicecloudParser
 from cogs5e.sheets.dicecloudv2 import DICECLOUDV2_URL_RE, DicecloudV2Parser
@@ -123,6 +123,9 @@ class SheetManager(commands.Cog):
         __Valid Arguments__
         -d <damage> - How much damage the attack should do.
         -b <to-hit> - The to-hit bonus of the attack.
+        -save <save> - The save ability for this attack (e.g. str, dex, con, int, wis, cha).
+        -dc <dc> - The DC for the save attack.
+        half - When used with -save and -d, successful saves take half damage.
         -desc <description> - A description of the attack.
         -verb <verb> - The verb to use for this attack. (e.g. "Padellis <verb> a dagger!")
         proper - This attack's name is a proper noun.
@@ -151,10 +154,19 @@ class SheetManager(commands.Cog):
         if activation is not None:
             activation = ActivationType(activation)
 
+        damage = parsed.join("d", "+")
+        save = parsed.last("save")
+        if save:
+            try:
+                save = normalize_save_stat(save)
+            except ValueError:
+                raise InvalidArgument(f"{save!r} is not a valid save stat.")
+        success_damage = f"({damage})/2" if save and parsed.last("half", type_=bool) and damage else None
+
         attack = Attack.new(
             name,
             bonus_calc=parsed.join("b", "+"),
-            damage_calc=parsed.join("d", "+"),
+            damage_calc=damage,
             details=parsed.join("desc", "\n"),
             verb=parsed.last("verb"),
             proper=parsed.last("proper", False, bool),
@@ -163,6 +175,9 @@ class SheetManager(commands.Cog):
             thumb=parsed.last("thumb"),
             extra_crit_damage=parsed.last("c"),
             activation_type=activation,
+            save=save,
+            dc=parsed.last("dc"),
+            success_damage=success_damage,
         )
 
         conflict = next((a for a in character.overrides.attacks if a.name.lower() == attack.name.lower()), None)
