@@ -1,0 +1,64 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, system-ui, sans-serif;
+  background: #10131a;
+  color: #f4f7fb;
+}
+
+body {
+  margin: 0;
+}
+
+.app {
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: 880px;
+  min-height: 100vh;
+  padding: 4rem 1.5rem;
+}
+
+.hero,
+.panel {
+  background: #1b2130;
+  border: 1px solid #313a50;
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+.hero {
+  margin-bottom: 1rem;
+}
+
+.eyebrow {
+  color: #8cb8ff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.5rem;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+.view-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.view-links a {
+  border: 1px solid #59709b;
+  border-radius: 999px;
+  color: #dbe8ff;
+  padding: 0.5rem 0.85rem;
+  text-decoration: none;
+}
+
+.view-links a[aria-current="page"] {
+  background: #2d5ea8;
+  border-color: #7babff;
+}
