@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Avrae Combat View</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <main class="app" data-app>
+    <header class="hero">
+      <p class="eyebrow" data-view-label>Player View</p>
+      <h1>Avrae Combat View</h1>
+      <p data-view-description>
+        Player view is shown by default. Use the DM URL when you need the DM view.
+      </p>
+      <nav class="view-links" aria-label="Combat views">
+        <a href="./" data-player-link>Player view</a>
+        <a href="./dm/" data-dm-link>DM view</a>
+      </nav>
+    </header>
+
+    <section class="panel" data-player-view>
+      <h2>Player Tools</h2>
+      <p>Track your character, take your turn, and review public combat details.</p>
+    </section>
+
+    <section class="panel" data-dm-view hidden>
+      <h2>DM Tools</h2>
+      <p>Manage hidden combat details and encounter controls from the dedicated DM URL.</p>
+    </section>
+  </main>
+</body>
+</html>
